@@ -62,7 +62,7 @@ lua는 동타입 언어입니다.
 
 Lua의 모든 값은 일급 값입니다.
 즉, 모든 값을 변수에 저장하고, 다른 함수에 인수로 전달하고, 결과로
-반환할 수 있습니다.
+리턴할 수 있습니다.
 
 Lua에는 8개의 @x{basic types}이 있습니다.
 @def{nil}, @def{boolean}, @def{number},
@@ -171,120 +171,106 @@ Lua 에서 테이블을 만드는 몇 가지 편리한 방법이 있습니다.
 테이블, 함수, 스레드 및 (전체) 사용자 데이터 값은 @emph{objects}입니다.
 변수는 실제로 이러한 값을 @emph{contain}하지 않고 @emph{references}할
 뿐입니다.
-할당, 매개변수 전달 및 함수 반환은 항상 해당 값에 대한 참조를 조작하며,
+할당, 매개변수 전달 및 함수 리턴은 항상 해당 값에 대한 참조를 조작하며,
 이러한 작업은 어떤 종류의 복사도 의미하지 않습니다.
 
 라이브러리 함수 @Lid{type}은 주어진 값의 타입을 설명하는
-문자열을 반환합니다. @seeF{type}
+문자열을 리턴합니다. @seeF{type}
 
 }
 
 @sect2{globalenv| @title{Environments and the Global Environment}
 
-As we will discuss further in @refsec{variables} and @refsec{assignment},
-any reference to a free name
-(that is, a name not bound to any declaration) @id{var}
-is syntactically translated to @T{_ENV.var}.
-Moreover, every chunk is compiled in the scope of
-an external local variable named @id{_ENV} @see{chunks},
-so @id{_ENV} itself is never a free name in a chunk.
+@refsec{variables} 및 @refsec{assignment}에서 자세히 설명하겠지만,
+자유 이름에 대한 모든 참조(즉, 선언에 바인딩되지 않은 이름)
+@id{var}는 구문상 @T{_ENV.var}로 변환됩니다.
+또한 모든 청크는 @id{_ENV}라는 외부 로컬 변수의
+범위에서 컴파일됩니다. @see{chunks}
+외부 로컬 변수의 범위에서 컴파일되므로 @id{_ENV} 자체는 청크의
+자유 이름이 될 수 없습니다.
 
-Despite the existence of this external @id{_ENV} variable and
-the translation of free names,
-@id{_ENV} is a completely regular name.
-In particular,
-you can define new variables and parameters with that name.
-Each reference to a free name uses the @id{_ENV} that is
-visible at that point in the program,
-following the usual visibility rules of Lua @see{visibility}.
+이 외부 @id{_ENV} 변수의 존재와 자유 이름의 변환에도 불구하고
+@id{_ENV}는 완전히 일반적인 이름입니다.
+특히 해당 이름 으로 새 변수 및 매개변수를 정의할 수 있습니다.
+자유 이름에 대한 각 참조는 Lua의 일반적
+인 표시 규칙에 따라 프로그램에서 해당 시점에 표시되는
+@id{_ENV}를 사용합니다.@see{visibility}
 
-Any table used as the value of @id{_ENV} is called an @def{environment}.
+@id{_ENV}의 값으로 사용되는 모든 테이블을 @def{environment}라고 합니다.
 
-Lua keeps a distinguished environment called the @def{global environment}.
-This value is kept at a special index in the C registry @see{registry}.
-In Lua, the global variable @Lid{_G} is initialized with this same value.
-(@Lid{_G} is never used internally,
-so changing its value will affect only your own code.)
+Lua는 @def{global environment}이라는 고유한 환경을 유지합니다.
+이 값은 C 레지스트리의 특수 인덱스에 보관됩니다. @see{registry}
+Lua에서는 전역 변수 @Lid{_G}가 동일한 값으로 초기화됩니다.
+(@Lid{_G}는 내부적으로 사용되지 않으므로 값을 변경하면 자신의 코드에만
+영향을 미칩니다.)
 
-When Lua loads a chunk,
-the default value for its @id{_ENV} variable
-is the global environment @seeF{load}.
-Therefore, by default,
-free names in Lua code refer to entries in the global environment
-and, therefore, they are also called @def{global variables}.
-Moreover, all standard libraries are loaded in the global environment
-and some functions there operate on that environment.
-You can use @Lid{load} (or @Lid{loadfile})
-to load a chunk with a different environment.
-(In C, you have to load the chunk and then change the value
-of its first upvalue; see @See{lua_setupvalue}.)
+Lua가 청크를 로드할 때 @id{_ENV} 변수의 기본값은 전역 환경입니다.
+@seeF{load}
+따라서 기본적으로 Lua 코드의 자유 이름은 전역 환경의 항목을 참조하므로
+@def{global variables}라고도 합니다.
+또한 모든 표준 라이브러리는 글로벌 환경에서 로드되며 일부 기능은 해당
+환경에서 작동합니다.
+@Lid{load}(또는 @Lid{loadfile})를 사용하여 다른 환경의 청크를 로드할 수
+있습니다.
+(C에서는 청크를 로드한 다음 첫 번째 업밸류의 값을 변경해야
+합니다.) @See{lua_setupvalue}
 
 }
 
 @sect2{error| @title{Error Handling}
 
-Several operations in Lua can @emph{raise} an error.
-An error interrupts the normal flow of the program,
-which can continue by @emph{catching} the error.
+Lua의 여러 연산은 에러를 @emph{raise}할 수 있습니다.
+에러는 프로그램의 정상적인 흐름을 중단시키며, 에러를 @emph{catching}하여
+계속 진행할 수 있습니다.
 
-Lua code can explicitly raise an error by calling the
-@Lid{error} function.
-(This function never returns.)
-
-To catch errors in Lua,
-you can do a @def{protected call},
-using @Lid{pcall} (or @Lid{xpcall}).
-The function @Lid{pcall} calls a given function in @def{protected mode}.
-Any error while running the function stops its execution,
-and control returns immediately to @id{pcall},
-which returns a status code.
-
-Because Lua is an embedded extension language,
-Lua code starts running by a call
-from @N{C code} in the host program.
-(When you use Lua standalone,
-the @id{lua} application is the host program.)
-Usually, this call is protected;
-so, when an otherwise unprotected error occurs during
-the compilation or execution of a Lua chunk,
-control returns to the host,
-which can take appropriate measures,
-such as printing an error message.
-
-Whenever there is an error,
-an @def{error object}
-is propagated with information about the error.
-Lua itself only generates errors whose error object is a string,
-but programs may generate errors with
-any value as the error object.
-It is up to the Lua program or its host to handle such error objects.
-For historical reasons,
-an error object is often called an @def{error message},
-even though it does not have to be a string.
+Lua 코드는 @Lid{error} 함수를 호출하여 명시적으로 에러를 발생시킬 수
+있습니다.
+(이 함수는 리턴되지 않습니다.)
 
 
-When you use @Lid{xpcall} (or @Lid{lua_pcall}, in C)
-you may give a @def{message handler}
-to be called in case of errors.
-This function is called with the original error object
-and returns a new error object.
-It is called before the error unwinds the stack,
-so that it can gather more information about the error,
-for instance by inspecting the stack and creating a stack traceback.
-This message handler is still protected by the protected call;
-so, an error inside the message handler
-will call the message handler again.
-If this loop goes on for too long,
-Lua breaks it and returns an appropriate message.
-The message handler is called only for regular runtime errors.
-It is not called for memory-allocation errors
-nor for errors while running finalizers or other message handlers.
+Lua에서 에러를 잡으려면 @def{protected call}인
+@Lid{pcall}(또는 @Lid{xpcall})을 사용하면 됩니다.
+@Lid{pcall} 함수는 @def{protected mode}에서 지정된 함수를 호출합니다.
+함수를 실행하는 동안 에러가 발생하면 실행이 중지되고 제어는
+즉시 상태 코드를 리턴하는 @id{pcall}로 리턴됩니다.
 
-Lua also offers a system of @emph{warnings} @seeF{warn}.
-Unlike errors, warnings do not interfere
-in any way with program execution.
-They typically only generate a message to the user,
-although this behavior can be adapted from C @seeC{lua_setwarnf}.
+Lua는 임베디드 확장 언어이므로 호스트 프로그램에서 @N{C code}를
+호출하면 Lua 코드가 실행되기 시작합니다.
+(Lua를 독립 실행하는 경우 @id{lua} 애플리케이션이 호스트 프로그램입니다.)
+일반적으로 이 호출은 보호되므로, Lua 청크를 컴파일하거나 실행하는 동안
+보호되지 않는 에러가 발생하면 제어가 호스트로 리턴되어 에러 메시지
+출력 같은 적절한 조치를 취할 수 있습니다.
+
+
+에러가 발생할 때마다 에러에 대한 정보와 함께 @def{error object}가
+전파됩니다.
+Lua 자체는 에러 객체가 문자열인 에러만 생성하지만, 프로그램에서
+는 에러 객체가 임의의 값인 에러를 생성할 수도 있습니다.
+이러한 에러 객체를 처리하는 것은 Lua 프로그램 또는 호스트의 몫입니다.
+역사적인 이유로 에러 객체는 문자열일 필요가 없음에도 불구하고
+@def{error message}라고 부르는 경우가 많습니다.
+
+
+@Lid{xpcall}(또는 C언어의 경우 @Lid{lua_pcall})을 사용할 때
+에러 발생 시 호출할 @def{message handler}를 지정할 수 있습니다.
+이 함수는 원래 에러 객체를 인수로 호출되며 새 에러 객체를
+리턴합니다.
+에러가 스택을 풀기 전에 호출되므로 스택을 검사하고 스택
+트레이스백을 생성하는 등 에러에 대한 자세한 정보를 수집할
+수 있습니다.
+이 메시지 핸들러는 여전히 보호 호출에 의해 보호되므로 메시지
+핸들러 내부에서 에러가 발생하면 메시지 핸들러를 다시 호출합니다.
+이 루프가 너무 오래 계속되면 Lua는 루프를 중단하고 적절한 메시지를
+반환합니다.
+메시지 핸들러는 일반 런타임 에러에 대해서만 호출됩니다.
+메모리 할당 에러나 파이널라이저 또는 기타 메시지 핸들러 실행 중
+에러에 대해서는 호출되지 않습니다.
+
+루아는 @emph{warnings} 시스템도 제공합니다. @seeF{warn}
+에러와 달리 경고는 프로그램 실행에 어떤 방식으로도
+방해가 되지 않습니다.
+일반적으로 사용자에게 메시지만 생성합니다, 이 동작은 C에서 조정할
+수 있습니다.@seeC{lua_setwarnf}
 
 }
 
